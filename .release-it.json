@@ -3,6 +3,7 @@
 		"publish": false
 	},
 	"git": {
+		"addUntrackedFiles": true,
 		"requireCleanWorkingDir": true,
 		"commit": true,
 		"commitMessage": "chore: release ${version}",
