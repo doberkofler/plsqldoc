@@ -117,7 +117,7 @@ export class PLSqlDocScanner {
 			return null;
 		}
 
-		const doc: DocComment | null = this.extractLeadingDoc(docIndex);
+		let doc: DocComment | null = this.extractLeadingDoc(docIndex);
 		let cursor: number = nameResult.nextIndex;
 		let parameters: ParameterDoc[] = [];
 
@@ -129,6 +129,7 @@ export class PLSqlDocScanner {
 
 		let returnType: string | null = null;
 		const statementEnd: number = this.findStatementEnd(routineIndex);
+		doc ??= this.extractTrailingLineDoc(statementEnd);
 		while (cursor >= 0 && cursor < statementEnd) {
 			if (this.isKeyword(cursor, 'RETURN')) {
 				returnType = this.consumeTypeSpecifier(this.nextVisibleIndex(cursor), statementEnd);
@@ -343,6 +344,7 @@ export class PLSqlDocScanner {
 	private extractLeadingDoc(index: number): DocComment | null {
 		const comments: string[] = [];
 		let cursor: number = index - 1;
+		let expectedLine: number = this.tokens[index]?.line ?? 0;
 
 		while (cursor >= 0) {
 			const token: Token = this.tokens[cursor];
@@ -360,6 +362,19 @@ export class PLSqlDocScanner {
 				break;
 			}
 
+			if (rawText.startsWith('--')) {
+				if (
+					token.line >= expectedLine ||
+					token.line < expectedLine - 1 ||
+					this.hasVisibleTokenBeforeOnLine(cursor) ||
+					PLSqlDocScanner.isSeparatorLineComment(rawText)
+				) {
+					break;
+				}
+
+				expectedLine = token.line;
+			}
+
 			comments.unshift(rawText);
 			if (rawText.startsWith('/**')) {
 				break;
@@ -368,6 +383,47 @@ export class PLSqlDocScanner {
 		}
 
 		return comments.length > 0 ? parseDocComment(comments.join('\n')) : null;
+	}
+
+	private extractTrailingLineDoc(index: number): DocComment | null {
+		const line: number = this.tokens[index].line;
+		let cursor: number = index + 1;
+
+		while (cursor < this.tokens.length && this.tokens[cursor].type === PlSqlLexer.SPACE) {
+			cursor++;
+		}
+		if (cursor >= this.tokens.length) {
+			return null;
+		}
+
+		const token: Token = this.tokens[cursor];
+		const rawText: string = token.text ?? '';
+		if (token.type !== PlSqlLexer.COMMENT || token.line !== line || !rawText.startsWith('--')) {
+			return null;
+		}
+
+		return parseDocComment(rawText);
+	}
+
+	private hasVisibleTokenBeforeOnLine(index: number): boolean {
+		const line: number = this.tokens[index].line;
+
+		for (let cursor = index - 1; cursor >= 0; cursor--) {
+			const token: Token = this.tokens[cursor];
+			if (token.line !== line) {
+				return false;
+			}
+
+			if (!PLSqlDocScanner.isTriviaToken(token)) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	private static isSeparatorLineComment(rawText: string): boolean {
+		return /^--\s*-{3,}\s*$/u.test(rawText);
 	}
 
 	private nextVisibleIndex(currentIndex: number): number {

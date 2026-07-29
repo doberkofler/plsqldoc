@@ -52,4 +52,39 @@ describe('PLSqlDocScanner', () => {
 		expect(routine.doc?.description).toBe('Rebuilds all application indexes.');
 		expect(routine.parameters[0]).toStrictEqual(expect.objectContaining({defaultValue: 'USER', doc: 'Schema owner to process.', name: 'p_owner'}));
 	});
+
+	it('stops line docs at section separators', () => {
+		const source = `
+CREATE OR REPLACE PACKAGE xml_api AS
+	-------------------------------------------------------
+	-- GLOBAL PUBLIC MODULES
+	-------------------------------------------------------
+	-- Get open/close tags
+	--
+	FUNCTION getTagOpen(theTag IN VARCHAR2) RETURN VARCHAR2;
+END xml_api;
+/`;
+		const doc = new PLSqlDocScanner(source).parsePackage();
+		const [routine] = doc.routines;
+
+		expect(routine.doc?.description).toBe('Get open/close tags');
+	});
+
+	it('uses trailing inline comments only for the same routine', () => {
+		const source = `
+CREATE OR REPLACE PACKAGE xml_api AS
+	-- Get open tag
+	FUNCTION getTagOpen(theTag IN VARCHAR2) RETURN VARCHAR2; -- Example: <Invoice>
+	FUNCTION getTagClose(theTag IN VARCHAR2) RETURN VARCHAR2; -- Example: </Invoice>
+	-- Get complete tag
+	FUNCTION getTag(theTag IN VARCHAR2) RETURN VARCHAR2;
+END xml_api;
+/`;
+		const doc = new PLSqlDocScanner(source).parsePackage();
+		const [openTag, closeTag, tag] = doc.routines;
+
+		expect(openTag.doc?.description).toBe('Get open tag');
+		expect(closeTag.doc?.description).toBe('Example: </Invoice>');
+		expect(tag.doc?.description).toBe('Get complete tag');
+	});
 });

@@ -8,6 +8,7 @@ import {generateHtmlDocs} from './renderer.js';
 import {PLSqlDocScanner} from './scanner.js';
 
 type CliOptions = {
+	readonly exclude?: string[];
 	readonly failOnWarning?: boolean;
 	readonly out: string;
 	readonly pattern: string;
@@ -35,6 +36,7 @@ const parseProject = async (directories: readonly string[], options: CliOptions)
 			const matchedFiles: string[] = await glob(options.pattern, {
 				absolute: true,
 				cwd: absoluteDir,
+				ignore: options.exclude ?? [],
 				nodir: true,
 			});
 
@@ -94,6 +96,7 @@ const main = async (): Promise<void> => {
 		.argument('<directories...>', 'Target directories containing PL/SQL source files')
 		.option('-o, --out <directory>', 'Output HTML directory path', './docs')
 		.option('-p, --pattern <pattern>', 'Glob pattern matching PL/SQL files', '**/*.{sql,pks,pkb}')
+		.option('--exclude <patterns...>', 'Glob pattern(s) to exclude from input discovery')
 		.option('-v, --verbose', 'Enable verbose logging')
 		.option('--fail-on-warning', 'Exit with failure if parse warnings are emitted')
 		.action(async (directories: string[], options: CliOptions) => {
