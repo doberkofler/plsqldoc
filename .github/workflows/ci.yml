@@ -47,7 +47,11 @@ jobs:
         run: pnpm run test
 
       - name: Coveralls GitHub Action
+        if: matrix.node-version == '24.x'
         uses: coverallsapp/github-action@v2
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          file: coverage/lcov.info
 
       - name: Integration test
         run: pnpm run integration-test
