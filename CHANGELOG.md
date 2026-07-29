@@ -1,3 +1,5 @@
+# [0.3.0](https://github.com/doberkofler/plsqldoc/compare/v0.2.0...v0.3.0) (2026-07-29)
+
 # [0.2.0](https://github.com/doberkofler/plsqldoc/compare/v0.1.0...v0.2.0) (2026-07-29)
 
 ### Bug Fixes
