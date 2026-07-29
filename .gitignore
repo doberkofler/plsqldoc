@@ -1,0 +1,97 @@
+# ---------------------------
+# OS / Filesystem
+# ---------------------------
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# ---------------------------
+# Editor / IDE
+# ---------------------------
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# ---------------------------
+# AI
+# ---------------------------
+.opencode
+
+# ---------------------------
+# Logs
+# ---------------------------
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# ---------------------------
+# Env / Secrets
+# ---------------------------
+.env
+.env.*
+!.env.example
+
+# ---------------------------
+# Dependency directories
+# ---------------------------
+node_modules/
+.pnpm-store/
+.npm/
+
+# ---------------------------
+# Build output
+# ---------------------------
+dist/
+dist-demo/
+docs/
+coverage/
+.nyc_output/
+playwright-report/
+test-results/
+tmp/
+temp/
+.tmp/
+.temp/
+
+# ---------------------------
+# TypeScript
+# ---------------------------
+*.tsbuildinfo
+
+# ---------------------------
+# Package managers
+# ---------------------------
+package-lock.json
+yarn.lock
+
+# NOTE:
+# keep EXACTLY ONE lockfile depending on PM:
+# - npm  -> keep package-lock.json
+# - yarn -> keep yarn.lock
+# - pnpm -> keep pnpm-lock.yaml
+
+# ---------------------------
+# Caches
+# ---------------------------
+.cache/
+.eslintcache
+.oxc_cache
+
+# ---------------------------
+# Misc
+# ---------------------------
+*.tgz
+*.bak
+*.tmp
+
+# ---------------------------
+# Custom
+# ---------------------------
+
+# NOTE:
+# add custom ignores here
+

@@ -1,0 +1,75 @@
+{
+	"name": "plsqldoc",
+	"version": "0.0.0",
+	"private": false,
+	"description": "Static documentation generator for Oracle PL/SQL APIs",
+	"keywords": [
+		"antlr",
+		"cli",
+		"documentation",
+		"oracle",
+		"pldoc",
+		"plsql",
+		"typedoc"
+	],
+	"homepage": "https://github.com/doberkofler/plsqldoc#readme",
+	"bugs": {
+		"url": "https://github.com/doberkofler/plsqldoc/issues"
+	},
+	"license": "MIT",
+	"author": "Dieter Oberkofler",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/doberkofler/plsqldoc.git"
+	},
+	"bin": "./dist/index.js",
+	"type": "module",
+	"scripts": {
+		"antlr": "antlr-ng -Dlanguage=TypeScript -o src/generated PlSqlLexer.g4",
+		"typecheck": "tsc --noEmit",
+		"lint": "oxlint",
+		"format": "oxfmt --write",
+		"format:check": "oxfmt --check",
+		"ci": "pnpm run typecheck && pnpm run lint && pnpm run format:check && pnpm run build && pnpm run test",
+		"test": "vitest run --coverage",
+		"release": "release-it",
+		"create-changelog": "conventional-changelog -p angular -i CHANGELOG.md -s -r 0",
+		"prepare": "husky",
+		"dev": "vite build --watch",
+		"build": "vite build",
+		"integration-test": "node dist/index.js ./examples -o ./docs --verbose"
+	},
+	"dependencies": {
+		"antlr4ng": "3.0.16",
+		"cli-progress": "3.12.0",
+		"commander": "15.0.0",
+		"debug": "4.4.3",
+		"glob": "13.0.6",
+		"handlebars": "4.7.9",
+		"zod": "4.4.3"
+	},
+	"devDependencies": {
+		"@commitlint/cli": "21.2.1",
+		"@commitlint/config-conventional": "21.2.0",
+		"@types/cli-progress": "3.11.6",
+		"@types/debug": "4.1.13",
+		"@types/node": "26.1.2",
+		"@vitest/coverage-v8": "4.1.10",
+		"antlr-ng": "1.0.10",
+		"conventional-changelog": "8.1.0",
+		"conventional-changelog-angular": "9.2.1",
+		"eslint-plugin-regexp": "3.1.1",
+		"husky": "9.1.7",
+		"oxfmt": "0.61.0",
+		"oxlint": "1.76.0",
+		"oxlint-tsgolint": "7.0.2001",
+		"release-it": "21.0.0",
+		"typescript": "6.0.3",
+		"vite": "8.1.5",
+		"vitest": "4.1.10"
+	},
+	"packageManager": "pnpm@11.16.0",
+	"create-template-project": {
+		"template": "cli"
+	}
+}

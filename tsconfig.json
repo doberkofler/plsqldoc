@@ -1,0 +1,25 @@
+{
+	"compilerOptions": {
+		"target": "ESNext",
+		"lib": ["ESNext"],
+		"module": "ESNext",
+		"allowImportingTsExtensions": true,
+		"noEmit": true,
+		"declaration": false,
+		"declarationMap": false,
+		"strict": true,
+		"esModuleInterop": true,
+		"moduleResolution": "bundler",
+		"skipLibCheck": true,
+		"forceConsistentCasingInFileNames": true,
+		"noFallthroughCasesInSwitch": true,
+		"noImplicitReturns": true,
+		"noImplicitAny": true,
+		"noImplicitThis": true,
+		"strictNullChecks": true,
+		"resolveJsonModule": true,
+		"types": ["node", "vitest"]
+	},
+	"include": ["src", "tests", "scripts", "*.config.ts", "eslint.config.js"],
+	"exclude": ["src/templates/**/files"]
+}
