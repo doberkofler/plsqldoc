@@ -4,60 +4,33 @@ Modern static documentation generator for Oracle PL/SQL APIs.
 
 The tool scans PL/SQL source files, extracts package and routine declarations with PLDoc/Javadoc-style comments, and renders static HTML documentation.
 
-## Install
+## Usage
+
+No project installation is required. Run the published CLI directly with:
 
 ```sh
-pnpm install
+pnpm dlx plsqldoc ./packages -o ./docs --clean
 ```
 
-## Build
+or with npm:
 
 ```sh
-pnpm antlr
-pnpm build
+npx plsqldoc ./packages -o ./docs --clean
 ```
 
-## Demo
-
-The `examples/` directory contains package specs, package bodies, and standalone routine files that show how real PL/SQL input is processed.
+To install it into a project instead:
 
 ```sh
-pnpm antlr
-pnpm build
-pnpm start -- ./examples -o ./docs --verbose
+pnpm add -D plsqldoc
+pnpm exec plsqldoc ./packages -o ./docs --clean
 ```
 
 Open `docs/index.html` in a browser after the command completes.
 
-The demo demonstrates:
-
-- Package-level `/** */` documentation.
-- Contiguous `--` documentation comments.
-- Procedure and function declarations from a package spec.
-- `@param` and `@return` tag extraction.
-- Standalone procedure extraction from `.sql` files.
-- Package body implementation routines ignored by default.
-
-## Quality Checks
-
-```sh
-pnpm typecheck
-pnpm lint
-pnpm format:check
-pnpm test
-pnpm build
-```
-
-Run all checks with:
-
-```sh
-pnpm run ci
-```
-
 ## CLI
 
 ```sh
-pldoc <directories...> [options]
+plsqldoc <directories...> [options]
 ```
 
 Options:
@@ -72,7 +45,53 @@ Options:
 Example excluding test packages:
 
 ```sh
-plsqldoc ./packages -o ./docs --clean --verbose --exclude '**/tst_*'
+pnpm dlx plsqldoc ./packages -o ./docs --clean --verbose --exclude '**/tst_*'
+```
+
+## Demo From Source
+
+The `examples/` directory contains package specs, package bodies, and standalone routine files that show how real PL/SQL input is processed.
+
+```sh
+pnpm install
+pnpm antlr
+pnpm build
+node dist/index.js ./examples -o ./docs --verbose
+```
+
+The demo demonstrates:
+
+- Package-level `/** */` documentation.
+- Contiguous `--` documentation comments.
+- Procedure and function declarations from a package spec.
+- `@param` and `@return` tag extraction.
+- Standalone procedure extraction from `.sql` files.
+- Package body implementation routines ignored by default.
+
+## Development
+
+Install dependencies and build from source with:
+
+```sh
+pnpm install
+pnpm antlr
+pnpm build
+```
+
+Run individual checks with:
+
+```sh
+pnpm typecheck
+pnpm lint
+pnpm format:check
+pnpm test
+pnpm build
+```
+
+Run all checks with:
+
+```sh
+pnpm run ci
 ```
 
 ## Documentation Comments
