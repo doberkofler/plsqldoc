@@ -4,6 +4,7 @@ import Handlebars from 'handlebars';
 import {type PackageDoc, type ProjectDoc, type RoutineDoc} from './ast.js';
 
 export type GeneratorOptions = {
+	readonly cleanOutput?: boolean;
 	readonly outputDir: string;
 };
 
@@ -142,6 +143,12 @@ const toRoutineView = (routine: RoutineDoc): RoutineView => ({...routine, signat
 
 const safeFileName = (name: string): string => name.replaceAll(/[^\w.-]/gu, '_');
 
+const assertSafeOutputCleanPath = (resolvedPath: string): void => {
+	if (resolvedPath === path.parse(resolvedPath).root) {
+		throw new Error('Generator error: refusing to clean filesystem root.');
+	}
+};
+
 /**
  * Generates static HTML documentation for a parsed PL/SQL project.
  *
@@ -158,6 +165,11 @@ export const generateHtmlDocs = async (project: ProjectDoc, options: GeneratorOp
 	const packageTemplate = Handlebars.compile(templateSource);
 	const indexTemplate = Handlebars.compile(indexTemplateSource);
 	const resolvedPath: string = path.resolve(options.outputDir);
+	if (options.cleanOutput === true) {
+		assertSafeOutputCleanPath(resolvedPath);
+		await fs.rm(resolvedPath, {force: true, recursive: true});
+	}
+
 	await fs.mkdir(resolvedPath, {recursive: true});
 
 	const packageViews: PackageView[] = project.packages.map(

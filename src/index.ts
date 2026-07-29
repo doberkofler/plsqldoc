@@ -8,6 +8,7 @@ import {generateHtmlDocs} from './renderer.js';
 import {PLSqlDocScanner} from './scanner.js';
 
 type CliOptions = {
+	readonly clean?: boolean;
 	readonly exclude?: string[];
 	readonly failOnWarning?: boolean;
 	readonly out: string;
@@ -96,6 +97,7 @@ const main = async (): Promise<void> => {
 		.argument('<directories...>', 'Target directories containing PL/SQL source files')
 		.option('-o, --out <directory>', 'Output HTML directory path', './docs')
 		.option('-p, --pattern <pattern>', 'Glob pattern matching PL/SQL files', '**/*.{sql,pks,pkb}')
+		.option('--clean', 'Clean the output directory before generating documentation')
 		.option('--exclude <patterns...>', 'Glob pattern(s) to exclude from input discovery')
 		.option('-v, --verbose', 'Enable verbose logging')
 		.option('--fail-on-warning', 'Exit with failure if parse warnings are emitted')
@@ -118,7 +120,7 @@ const main = async (): Promise<void> => {
 			}
 
 			const resolvedOutDir: string = path.resolve(options.out);
-			await generateHtmlDocs(project, {outputDir: resolvedOutDir});
+			await generateHtmlDocs(project, {cleanOutput: options.clean, outputDir: resolvedOutDir});
 			console.log(`Documentation successfully generated at: ${resolvedOutDir}`);
 		});
 

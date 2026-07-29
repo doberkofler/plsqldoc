@@ -23,4 +23,19 @@ describe('generateHtmlDocs', () => {
 		expect(packageHtml).toContain('PROCEDURE save_employee');
 		expect(packageHtml).toContain('Human readable employee label.');
 	});
+
+	it('cleans the output directory before rendering when requested', async () => {
+		const sourcePath = path.resolve('tests/fixtures/hr_api.pks');
+		const source = await fs.readFile(sourcePath, 'utf8');
+		const sourceDoc = new PLSqlDocScanner(source, sourcePath).parseFile();
+		const project: ProjectDoc = {packages: sourceDoc.packages, routines: sourceDoc.routines, warnings: []};
+		const outputDir = await fs.mkdtemp(path.join(os.tmpdir(), 'pldoc-ts-'));
+		const stalePath = path.join(outputDir, 'stale.html');
+		await fs.writeFile(stalePath, 'stale', 'utf8');
+
+		await generateHtmlDocs(project, {cleanOutput: true, outputDir});
+
+		await expect(fs.access(stalePath)).rejects.toThrow('ENOENT');
+		await expect(fs.readFile(path.join(outputDir, 'index.html'), 'utf8')).resolves.toContain('PL/SQL API Reference');
+	});
 });
