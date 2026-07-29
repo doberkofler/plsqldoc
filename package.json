@@ -1,6 +1,6 @@
 {
 	"name": "plsqldoc",
-	"version": "0.0.0",
+	"version": "0.1.0",
 	"private": false,
 	"description": "Static documentation generator for Oracle PL/SQL APIs",
 	"keywords": [
