@@ -172,13 +172,11 @@ export const generateHtmlDocs = async (project: ProjectDoc, options: GeneratorOp
 
 	await fs.mkdir(resolvedPath, {recursive: true});
 
-	const packageViews: PackageView[] = project.packages.map(
-		(pkg: PackageDoc): PackageView => ({
-			...pkg,
-			fileName: `${safeFileName(pkg.name)}.html`,
-			routines: pkg.routines.map(toRoutineView),
-		}),
-	);
+	const packageViews: PackageView[] = project.packages.map((pkg: PackageDoc): PackageView => ({
+		...pkg,
+		fileName: `${safeFileName(pkg.name)}.html`,
+		routines: pkg.routines.map(toRoutineView),
+	}));
 	const standaloneRoutines: RoutineView[] = project.routines.map(toRoutineView);
 
 	await Promise.all(

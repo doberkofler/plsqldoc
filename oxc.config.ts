@@ -60,6 +60,7 @@ export const linter = defineConfig({
 		'eslint/sort-keys': 'off',
 		'eslint/no-ternary': 'off',
 		'eslint/no-void': ['error', {allowAsStatement: true}],
+		'eslint/one-var': 'off',
 		'typescript/consistent-type-definitions': ['error', 'type'],
 		'typescript/dot-notation': ['error', {allowPattern: '^[a-zA-Z]+(_[a-zA-Z]+)+$'}],
 		'typescript/no-import-type-side-effects': 'off',
