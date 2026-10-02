@@ -381,6 +381,25 @@ END conditional_api;`;
 		expect(doc.warnings).toStrictEqual([]);
 	});
 
+	it('preserves a multiline procedure beginning after a same-line conditional directive', () => {
+		const source = `CREATE PACKAGE conditional_api IS
+	/**
+	 * Opens rows.
+	 * @param p_rc Returned rows.
+	 */
+$if false $then PROCEDURE open_rows
+		( p_rc OUT SYS_REFCURSOR );
+$end
+END conditional_api;`;
+		const doc = new PLSqlDocScanner(source).parseFile();
+		const [pkg] = doc.packages;
+		const {members} = pkg;
+
+		expect(members).toStrictEqual([expect.objectContaining({kind: 'PROCEDURE', name: 'open_rows'})]);
+		expect(members[0]).toStrictEqual(expect.objectContaining({parameters: [expect.objectContaining({name: 'p_rc'})]}));
+		expect(doc.warnings).toStrictEqual([]);
+	});
+
 	it('warns for malformed recognized declarations with locations', () => {
 		const source = 'CREATE PACKAGE broken IS TYPE row_type IS RECORD (id NUMBER; FUNCTION missing(; END broken;';
 		const doc = new PLSqlDocScanner(source, 'broken.pks').parseFile();

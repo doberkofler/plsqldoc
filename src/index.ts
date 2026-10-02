@@ -9,6 +9,8 @@ import {findUndocumentedDeclarations} from './documentationValidator.js';
 import {generateHtmlDocs} from './renderer.js';
 import {PLSqlDocScanner} from './scanner.js';
 
+declare const PACKAGE_VERSION: string;
+
 const DEFAULT_EXTENSIONS = '.pks,.pkb,.pkg,.typ,.tyb,.tps,.tpb,.prc,.fnc';
 
 type CliOptions = {
@@ -147,7 +149,7 @@ export const runCli = async (argv: readonly string[]): Promise<number> => {
 	program
 		.name('pldoc')
 		.description('Modern static documentation generator for Oracle PL/SQL codebases')
-		.version('1.1.0')
+		.version(PACKAGE_VERSION)
 		.argument('<directories...>', 'Target directories containing PL/SQL source files')
 		.option('-o, --out <directory>', 'Output HTML directory path', './docs')
 		.option('--extensions <extensions>', 'Comma-separated source extensions', DEFAULT_EXTENSIONS)

@@ -1,7 +1,11 @@
 import {defineConfig} from 'vitest/config';
 import path from 'node:path';
+import packageMetadata from './package.json' with {type: 'json'};
 
 export default defineConfig({
+	define: {
+		PACKAGE_VERSION: JSON.stringify(packageMetadata.version),
+	},
 	build: {
 		ssr: true,
 		lib: {

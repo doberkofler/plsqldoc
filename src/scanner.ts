@@ -175,7 +175,12 @@ export class PLSqlDocScanner {
 
 	private parsePackageMember(startIndex: number): Parsed<PackageMemberDoc> {
 		if (this.text(startIndex).startsWith('$')) {
-			return {nextIndex: this.findVisibleLineEnd(startIndex), value: null};
+			const directiveEnd: number = this.findConditionalDirectiveEnd(startIndex);
+			const memberIndex: number = this.nextVisibleIndex(directiveEnd);
+			if (this.isKeyword(directiveEnd, '$THEN') && this.tokens[memberIndex]?.line === this.tokens[startIndex].line && this.isRoutineKeyword(memberIndex)) {
+				return this.parseRoutine(memberIndex, startIndex, this.findDeclarationEnd(memberIndex));
+			}
+			return {nextIndex: directiveEnd, value: null};
 		}
 		const endIndex: number = this.findDeclarationEnd(startIndex);
 		if (this.isKeyword(startIndex, 'PRAGMA')) {
@@ -754,6 +759,16 @@ export class PLSqlDocScanner {
 			}
 		}
 		return endIndex;
+	}
+
+	private findConditionalDirectiveEnd(startIndex: number): number {
+		const lineEnd: number = this.findVisibleLineEnd(startIndex);
+		for (let index = startIndex; index <= lineEnd; index++) {
+			if (this.isKeyword(index, '$THEN')) {
+				return index;
+			}
+		}
+		return lineEnd;
 	}
 
 	private findBalancedClose(openIndex: number, boundary: number): number | null {

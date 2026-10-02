@@ -4,6 +4,7 @@ import * as os from 'node:os';
 import path from 'node:path';
 
 import {afterEach, describe, expect, it} from 'vitest';
+import {z} from 'zod';
 
 type ProcessResult = {
 	readonly exitCode: number;
@@ -44,6 +45,14 @@ describe('built CLI', () => {
 				await fs.rm(directory, {force: true, recursive: true});
 			}),
 		);
+	});
+
+	it('reports the version from package metadata', async () => {
+		const rawPackageMetadata: string = await fs.readFile(path.resolve('package.json'), 'utf8');
+		const packageMetadata = z.object({version: z.string()}).parse(JSON.parse(rawPackageMetadata));
+		const result: ProcessResult = runBuiltCli(['--version']);
+
+		expect(result).toStrictEqual({exitCode: 0, stderr: '', stdout: `${packageMetadata.version}\n`});
 	});
 
 	it('renders the complete fixture project through the compiled executable', async () => {

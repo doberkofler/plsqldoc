@@ -72,6 +72,23 @@ AS OBJECT (
 		expect(findUndocumentedDeclarations({...sourceDoc, warnings: []})).toStrictEqual([]);
 	});
 
+	it('accepts a documented procedure after a same-line conditional directive', () => {
+		const source = `CREATE PACKAGE conditional_api IS
+	/** Package. */
+
+	/**
+	 * Opens rows.
+	 * @param p_rc Returned rows.
+	 */
+$if false $then PROCEDURE open_rows
+	( p_rc OUT SYS_REFCURSOR );
+$end
+END conditional_api;`;
+		const sourceDoc = new PLSqlDocScanner(source).parseFile();
+
+		expect(findUndocumentedDeclarations({...sourceDoc, warnings: []})).toStrictEqual([]);
+	});
+
 	it('rejects duplicate and unknown routine tags', () => {
 		const source = `CREATE PACKAGE invalid_tags IS
 	/** Package. */
