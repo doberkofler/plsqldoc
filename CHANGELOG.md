@@ -1,3 +1,9 @@
+# [1.2.0](https://github.com/doberkofler/plsqldoc/compare/v1.1.0...v1.2.0) (2026-10-02)
+
+### Features
+
+* expand PL/SQL API documentation ([66decd3](https://github.com/doberkofler/plsqldoc/commit/66decd3626f25d109d966c1fd735b7777c41f580))
+
 # [1.1.0](https://github.com/doberkofler/plsqldoc/compare/v1.0.0...v1.1.0) (2026-10-02)
 
 ### Features
