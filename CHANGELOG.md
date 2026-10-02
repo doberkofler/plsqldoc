@@ -1,3 +1,9 @@
+# [1.3.0](https://github.com/doberkofler/plsqldoc/compare/v1.2.0...v1.3.0) (2026-10-02)
+
+### Bug Fixes
+
+* ignore package pragma directives ([7025a4b](https://github.com/doberkofler/plsqldoc/commit/7025a4bf9c60dac96ee79465985ff2435b3d383b))
+
 # [1.2.0](https://github.com/doberkofler/plsqldoc/compare/v1.1.0...v1.2.0) (2026-10-02)
 
 ### Features
