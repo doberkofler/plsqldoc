@@ -6,9 +6,8 @@
 
 ## Documentation Model
 
-- Add support for documenting object types and trigger declarations if they become part of the public API scope.
+- Add support for documenting trigger declarations if they become part of the public API scope.
 - Add source links and exact source ranges once source maps/locations are tracked beyond declaration starts.
-- Add warnings for undocumented public routines and undocumented parameters.
 
 ## Renderer
 

@@ -14,6 +14,7 @@ export default defineConfig({
 		target: 'node22',
 	},
 	test: {
+		include: ['src/**/*.test.ts'],
 		coverage: {
 			exclude: ['src/generated/**', 'src/plSqlLexerBase.ts'],
 			include: ['src/**/*.ts'],

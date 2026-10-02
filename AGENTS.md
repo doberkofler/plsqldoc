@@ -48,9 +48,10 @@ Use pnpm.
 - Check formatting: `pnpm format:check`
 - Build with Vite: `pnpm build`
 - Test with coverage: `pnpm test`
+- Run black-box CLI integration tests: `pnpm test:integration`
 - Full CI verification: `pnpm run ci`
 - Watch build: `pnpm dev`
-- Demo/integration run: `pnpm run integration-test`
+- Demo run: `pnpm run integration-test`
 - Direct CLI demo after build: `node dist/index.js ./examples -o ./docs --verbose`
 
 Use the existing `oxlint.config.ts` and `oxfmt.config.ts` files for linting and formatting.
@@ -81,15 +82,16 @@ Prefer supporting:
 
 - `CREATE [OR REPLACE] PACKAGE` package specs.
 - Package-level documentation comments.
-- Public `PROCEDURE` declarations.
-- Public `FUNCTION` declarations.
+- Source-ordered public package declarations: routines, records, collections, ref cursors, subtypes, constants, exceptions, cursors, and variables.
+- Standalone object type specifications, including attributes, inheritance, constructors, methods, modifiers, and overloads.
+- Standalone nested-table and varray type specifications.
 - Standalone `CREATE [OR REPLACE] PROCEDURE` declarations.
 - Standalone `CREATE [OR REPLACE] FUNCTION` declarations.
 - Parameter names, modes, types, defaults, and `@param` descriptions.
 - Function return types and `@return` descriptions.
-- PLDoc/Javadoc-style tags such as `@param`, `@return`, `@author`, and unknown tags.
+- PLDoc/Javadoc-style multiline and repeated tags such as `@param`, `@return`, `@example`, `@see`, `@author`, and unknown tags.
 
-Package body implementation routines are ignored by default. Object types, triggers, private/body APIs, JSON output, and search are deferred in `TODO.md`.
+Package and object type body implementations are ignored. Triggers, private/body APIs, JSON output, and search are deferred in `TODO.md`.
 
 Avoid expanding into full statement/body parsing unless explicitly required.
 
@@ -102,6 +104,12 @@ Supported comment styles should remain PLDoc/Javadoc-like:
 - Tags in the form `@tag content`.
 
 When changing doc parsing, preserve description extraction, repeated tag collection, parameter tag attachment, and return tag attachment unless intentionally redesigning the format.
+
+Canonical top-level documentation must remain inside Oracle's stored object
+source: package documentation belongs in the package preamble after `AS` or
+`IS` and any `$Id$` comment; standalone type and routine documentation belongs
+immediately after the qualified object name. Keep pre-`CREATE` attachment only
+for compatibility with existing inputs.
 
 ## Verification
 

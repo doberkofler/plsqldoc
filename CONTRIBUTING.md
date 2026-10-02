@@ -34,17 +34,19 @@ Generated output directories such as `dist/`, `docs/`, and `coverage/` should be
 
 ## Parser and Scanner Changes
 
-Keep extraction lexer-first and scanner-based. The current scope is public package specs and standalone routine signatures, not full PL/SQL semantic analysis.
+Keep extraction lexer-first and scanner-based. The current scope is public package specs, standalone object/collection type specs, and standalone routine signatures, not full PL/SQL semantic analysis.
 
 When changing documentation comment behavior, preserve support for:
 
 - PLDoc/Javadoc-style `/** */` block comments.
 - Contiguous leading `--` line comments.
-- `@param`, `@return`, repeated tags, and unknown tags.
+- Multiline `@param`, `@return`, `@example`, `@see`, repeated tags, and unknown tags.
 - Separator comments as documentation boundaries.
 - Same-line trailing `--` comments attached only to the declaration on that line.
 
 Add or update colocated Vitest coverage in `src/*.test.ts` for scanner and parser behavior changes.
+
+Black-box CLI behavior belongs in `tests/integration/*.integration.test.ts`. These tests run against the built `dist/index.js` executable through `pnpm test:integration` and are included in `pnpm run ci`.
 
 ## Release Process
 

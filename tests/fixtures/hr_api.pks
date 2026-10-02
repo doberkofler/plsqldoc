@@ -1,7 +1,8 @@
-/**
- * Public HR package used by scanner tests.
- */
 CREATE OR REPLACE PACKAGE hr_api AS
+	/**
+	 * Public HR package used by scanner tests.
+	 */
+
 	/**
 	 * Creates or updates an employee.
 	 * @param p_employee_id Existing employee id. Null creates a new employee.

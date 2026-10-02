@@ -1,8 +1,9 @@
-/**
- * Public HR package used by the demo documentation build.
- * @author Example Team
- */
 CREATE OR REPLACE PACKAGE hr_api AS
+	/**
+	 * Public HR package used by the demo documentation build.
+	 * @author Example Team
+	 */
+
 	/**
 	 * Creates or updates an employee.
 	 * @param p_employee_id Existing employee id. Null creates a new employee.
