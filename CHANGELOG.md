@@ -1,3 +1,9 @@
+# [1.1.0](https://github.com/doberkofler/plsqldoc/compare/v1.0.0...v1.1.0) (2026-10-02)
+
+### Features
+
+* integrate canonical PL/SQL lexer ([59bc85d](https://github.com/doberkofler/plsqldoc/commit/59bc85df1de78cd836946e2e47a2a752730a5ea3))
+
 # [1.0.0](https://github.com/doberkofler/plsqldoc/compare/v0.3.0...v1.0.0) (2026-09-26)
 
 # [0.3.0](https://github.com/doberkofler/plsqldoc/compare/v0.2.0...v0.3.0) (2026-07-29)
