@@ -1,3 +1,9 @@
+# [1.4.0](https://github.com/doberkofler/plsqldoc/compare/v1.3.0...v1.4.0) (2026-10-02)
+
+### Bug Fixes
+
+* correct conditional scanning and CLI version ([abecef0](https://github.com/doberkofler/plsqldoc/commit/abecef0a8fcfa9ab80b9981570772ab705bd8b92))
+
 # [1.3.0](https://github.com/doberkofler/plsqldoc/compare/v1.2.0...v1.3.0) (2026-10-02)
 
 ### Bug Fixes
