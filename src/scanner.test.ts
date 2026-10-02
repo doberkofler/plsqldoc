@@ -246,6 +246,18 @@ END complete_api;
 		expect(routine.parameters[0]?.type).toBe('TIMESTAMP WITH TIME ZONE');
 	});
 
+	it('ignores package pragmas without hiding their associated declarations', () => {
+		const source = `CREATE PACKAGE exception_api IS
+	INVALID_SESSION EXCEPTION;
+	PRAGMA EXCEPTION_INIT(INVALID_SESSION, -20500);
+END exception_api;`;
+		const doc = new PLSqlDocScanner(source).parseFile();
+		const [pkg] = doc.packages;
+
+		expect(pkg.members).toStrictEqual([expect.objectContaining({kind: 'EXCEPTION', name: 'INVALID_SESSION'})]);
+		expect(doc.warnings).toStrictEqual([]);
+	});
+
 	it('attaches field comments with leading-comma formatting', () => {
 		const source = `CREATE PACKAGE records_api IS
 	TYPE row_type IS RECORD

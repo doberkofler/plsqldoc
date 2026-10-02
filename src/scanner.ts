@@ -178,6 +178,9 @@ export class PLSqlDocScanner {
 			return {nextIndex: this.findVisibleLineEnd(startIndex), value: null};
 		}
 		const endIndex: number = this.findDeclarationEnd(startIndex);
+		if (this.isKeyword(startIndex, 'PRAGMA')) {
+			return {nextIndex: endIndex, value: null};
+		}
 		if (this.isRoutineKeyword(startIndex)) {
 			return this.parseRoutine(startIndex, startIndex, endIndex);
 		}

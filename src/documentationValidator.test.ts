@@ -46,6 +46,8 @@ CREATE PACKAGE documented IS
 	/** Package. */
 
 	/** Record. */ TYPE row_type IS RECORD (/** Field. */ field_name VARCHAR2);
+	/** Invalid session. */ INVALID_SESSION EXCEPTION;
+	PRAGMA EXCEPTION_INIT(INVALID_SESSION, -20500);
 	/**
 	 * Lookup.
 	 * @param p_id Identifier.
