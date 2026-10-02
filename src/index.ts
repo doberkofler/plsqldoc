@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import * as fs from 'node:fs/promises';
 import path from 'node:path';
+import {pathToFileURL} from 'node:url';
 import {Command} from 'commander';
 import {glob} from 'glob';
 import {type PackageDoc, type ProjectDoc, type RoutineDoc, type SourceFileDoc} from './ast.js';
@@ -34,12 +35,13 @@ const parseProject = async (directories: readonly string[], options: CliOptions)
 			const absoluteDir: string = path.resolve(dir);
 			await assertDirectory(absoluteDir);
 
-			const matchedFiles: string[] = await glob(options.pattern, {
+			const discoveredFiles: string[] = await glob(options.pattern, {
 				absolute: true,
 				cwd: absoluteDir,
 				ignore: options.exclude ?? [],
 				nodir: true,
 			});
+			const matchedFiles: string[] = discoveredFiles.toSorted();
 
 			if (options.verbose === true) {
 				console.log(`Directory [${dir}]: Found ${matchedFiles.length} file(s).`);
@@ -87,8 +89,15 @@ const normalizeArgv = (argv: readonly string[]): string[] => {
 	return [...argv];
 };
 
-const main = async (): Promise<void> => {
+/**
+ * Runs the documentation CLI with an explicit argument vector.
+ *
+ * @param argv Node-style argument vector.
+ * @returns Process exit code.
+ */
+export const runCli = async (argv: readonly string[]): Promise<number> => {
 	const program = new Command();
+	let exitCode = 0;
 
 	program
 		.name('pldoc')
@@ -109,7 +118,7 @@ const main = async (): Promise<void> => {
 				}
 
 				if (options.failOnWarning === true) {
-					process.exitCode = 1;
+					exitCode = 1;
 					return;
 				}
 			}
@@ -124,13 +133,17 @@ const main = async (): Promise<void> => {
 			console.log(`Documentation successfully generated at: ${resolvedOutDir}`);
 		});
 
-	await program.parseAsync(normalizeArgv(process.argv));
+	await program.parseAsync(normalizeArgv(argv));
+	return exitCode;
 };
 
-try {
-	await main();
-} catch (error: unknown) {
-	const msg: string = error instanceof Error ? error.message : String(error);
-	console.error(`Fatal runtime exception: ${msg}`);
-	process.exitCode = 1;
+const entryPath: string | undefined = process.argv.at(1);
+if (entryPath !== undefined && import.meta.url === pathToFileURL(path.resolve(entryPath)).href) {
+	try {
+		process.exitCode = await runCli(process.argv);
+	} catch (error: unknown) {
+		const msg: string = error instanceof Error ? error.message : String(error);
+		console.error(`Fatal runtime exception: ${msg}`);
+		process.exitCode = 1;
+	}
 }

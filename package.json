@@ -25,7 +25,8 @@
 	"bin": "./dist/index.js",
 	"type": "module",
 	"scripts": {
-		"antlr": "antlr-ng -Dlanguage=TypeScript -o src/generated PlSqlLexer.g4",
+		"grammar:download": "node scripts/downloadGrammar.ts",
+		"grammar:generate": "antlr-ng -Dlanguage=TypeScript -o src/generated PlSqlLexer.g4",
 		"typecheck": "tsc --noEmit",
 		"lint": "oxlint",
 		"format": "oxfmt --write",

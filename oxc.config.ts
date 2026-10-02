@@ -10,6 +10,7 @@ const commonIgnore = [
 	'temp/**',
 	'public/**',
 	'src/generated/**',
+	'src/plSqlLexerBase.ts',
 	'**/*.md',
 	'**/*.yaml',
 	'src/templates/**/files/**',

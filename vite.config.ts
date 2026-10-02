@@ -5,7 +5,7 @@ export default defineConfig({
 	build: {
 		ssr: true,
 		lib: {
-			entry: path.resolve(__dirname, 'src/index.ts'),
+			entry: path.resolve(import.meta.dirname, 'src/index.ts'),
 			formats: ['es'],
 			fileName: 'index',
 		},
@@ -15,8 +15,16 @@ export default defineConfig({
 	},
 	test: {
 		coverage: {
+			exclude: ['src/generated/**', 'src/plSqlLexerBase.ts'],
+			include: ['src/**/*.ts'],
 			provider: 'v8',
 			reporter: ['text', 'json', 'html', 'lcov'],
+			thresholds: {
+				branches: 85,
+				functions: 95,
+				lines: 95,
+				statements: 95,
+			},
 		},
 	},
 });

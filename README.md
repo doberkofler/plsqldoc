@@ -54,7 +54,7 @@ The `examples/` directory contains package specs, package bodies, and standalone
 
 ```sh
 pnpm install
-pnpm antlr
+pnpm grammar:generate
 pnpm build
 node dist/index.js ./examples -o ./docs --verbose
 ```
@@ -74,7 +74,7 @@ Install dependencies and build from source with:
 
 ```sh
 pnpm install
-pnpm antlr
+pnpm grammar:generate
 pnpm build
 ```
 
@@ -101,3 +101,5 @@ Documentation comments can be written as PLDoc/Javadoc-style block comments begi
 ## Parser Strategy
 
 This project intentionally uses a lexer-first scanner rather than a full PL/SQL parser. The scanner focuses on public API declarations and documentation comments, similar to TypeDoc's declaration-oriented model.
+
+Lexing uses the canonical ANTLR grammars-v4 PL/SQL lexer with its Antlr4ng runtime base. The vendored upstream revision and local adaptations are recorded in [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md). `pnpm grammar:download` updates the sources from upstream `master`; `pnpm grammar:generate` regenerates the TypeScript artifacts.

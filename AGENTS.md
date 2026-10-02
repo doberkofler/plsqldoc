@@ -23,6 +23,8 @@ The intended architecture is:
 - `tests/fixtures/`: PL/SQL fixture files for scanner/renderer tests.
 - `examples/`: Demo PL/SQL input files used by the integration demo.
 - `PlSqlLexer.g4`: Source grammar for generated lexer code.
+- `src/plSqlLexerBase.ts`: Antlr4ng runtime support required by the canonical lexer.
+- `THIRD_PARTY_NOTICES.md`: Pinned upstream grammar revision, license, and local adaptations.
 - `src/generated/`: Generated lexer artifacts. Do not edit these manually.
 - `vite.config.ts`: Vite CLI build and Vitest coverage configuration.
 - `oxc.config.ts`: Shared oxlint/oxfmt defaults and ignore patterns.
@@ -38,7 +40,8 @@ The intended architecture is:
 Use pnpm.
 
 - Install dependencies: `pnpm install`
-- Regenerate lexer: `pnpm antlr`
+- Download current upstream grammar: `pnpm grammar:download`
+- Regenerate lexer: `pnpm grammar:generate`
 - Type-check: `pnpm typecheck`
 - Lint: `pnpm lint`
 - Format: `pnpm format`
@@ -67,7 +70,7 @@ Use the existing `oxlint.config.ts` and `oxfmt.config.ts` files for linting and 
 - Do not add Java, C, C++, or native parser dependencies.
 - Do not change lint rules, lint categories, or lint config behavior without explicit user approval.
 - Document intentionally deferred production hardening work in `TODO.md`.
-- Do not edit generated files under `src/generated/` directly. Update `PlSqlLexer.g4` and run `pnpm antlr` instead.
+- Do not edit generated files under `src/generated/` directly. Update `PlSqlLexer.g4` and run `pnpm grammar:generate` instead.
 - Do not edit generated output under `dist/`, `docs/`, or `coverage/` directly. Update source files and rerun the relevant command.
 
 ## Parser Scope
@@ -86,7 +89,7 @@ Prefer supporting:
 - Function return types and `@return` descriptions.
 - PLDoc/Javadoc-style tags such as `@param`, `@return`, `@author`, and unknown tags.
 
-Package body implementation routines are ignored by default. Object types, triggers, private/body APIs, JSON output, search, and full upstream lexer integration are deferred in `TODO.md`.
+Package body implementation routines are ignored by default. Object types, triggers, private/body APIs, JSON output, and search are deferred in `TODO.md`.
 
 Avoid expanding into full statement/body parsing unless explicitly required.
 
@@ -111,7 +114,7 @@ pnpm run ci
 If lexer grammar changes were made, run:
 
 ```sh
-pnpm antlr
+pnpm grammar:generate
 pnpm run ci
 ```
 

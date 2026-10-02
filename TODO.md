@@ -2,11 +2,7 @@
 
 ## Deferred Parser Hardening
 
-- Integrate the full upstream `antlr/grammars-v4/sql/plsql/PlSqlLexer.g4` once the API extraction behavior is stable.
-- Port or adapt `PlSqlLexerBase` to `antlr4ng`; the upstream TypeScript helper currently targets a different ANTLR runtime.
-- Validate `antlr-ng` compatibility with upstream lexer options such as `caseInsensitive = true` and `superClass = PlSqlLexerBase`.
-- Replace the current pragmatic lexer subset only after full upstream lexer generation, runtime behavior, and tests are passing.
-- Add fixtures for Oracle edge cases covered by the full lexer: alternative quoting, quoted identifiers, national character literals, hints, compiler directives, and SQL*Plus separators.
+- Add fixtures for remaining Oracle edge cases covered by the full lexer: national character literals, hints, compiler directives, and SQL*Plus separators.
 
 ## Documentation Model
 

@@ -38,4 +38,22 @@ describe('generateHtmlDocs', () => {
 		await expect(fs.access(stalePath)).rejects.toThrow('ENOENT');
 		await expect(fs.readFile(path.join(outputDir, 'index.html'), 'utf8')).resolves.toContain('PL/SQL API Reference');
 	});
+
+	it('rejects an empty documentation project', async () => {
+		const project: ProjectDoc = {packages: [], routines: [], warnings: []};
+
+		await expect(generateHtmlDocs(project, {outputDir: os.tmpdir()})).rejects.toThrow('Generator error: documentation project cannot be empty.');
+	});
+
+	it('refuses to clean the filesystem root', async () => {
+		const sourcePath = path.resolve('tests/fixtures/hr_api.pks');
+		const source = await fs.readFile(sourcePath, 'utf8');
+		const sourceDoc = new PLSqlDocScanner(source, sourcePath).parseFile();
+		const project: ProjectDoc = {packages: sourceDoc.packages, routines: sourceDoc.routines, warnings: []};
+		const filesystemRoot: string = path.parse(process.cwd()).root;
+
+		await expect(generateHtmlDocs(project, {cleanOutput: true, outputDir: filesystemRoot})).rejects.toThrow(
+			'Generator error: refusing to clean filesystem root.',
+		);
+	});
 });

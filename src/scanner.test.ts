@@ -87,4 +87,88 @@ END xml_api;
 		expect(closeTag.doc?.description).toBe('Example: </Invoice>');
 		expect(tag.doc?.description).toBe('Get complete tag');
 	});
+
+	it('handles canonical lexer identifiers and q-string delimiters', () => {
+		const source = `
+CREATE OR REPLACE PACKAGE "Unicode API" AS
+	/**
+	* Returns a JSON label.
+	* @param p_json JSON text
+	* @param p_text label text
+	* @return JSON label
+	*/
+	FUNCTION json(
+		p_json IN VARCHAR2 DEFAULT q'[a,b]',
+		p_text IN VARCHAR2 DEFAULT q'Xdon't, failX'
+	) RETURN VARCHAR2;
+END "Unicode API";
+/`;
+		const doc = new PLSqlDocScanner(source).parsePackage();
+		const [routine] = doc.routines;
+
+		expect(doc.name).toBe('"Unicode API"');
+		expect(routine.name).toBe('json');
+		expect(routine.parameters).toHaveLength(2);
+		expect(routine.parameters[0]).toStrictEqual(expect.objectContaining({defaultValue: "q'[a,b]'", name: 'p_json'}));
+		expect(routine.parameters[1]).toStrictEqual(expect.objectContaining({defaultValue: "q'Xdon't, failX'", name: 'p_text'}));
+	});
+
+	it('reports canonical lexer errors as scanner warnings', () => {
+		const doc = new PLSqlDocScanner('⌘ CREATE OR REPLACE PACKAGE test_api AS END test_api;').parseFile();
+
+		expect(doc.warnings).toStrictEqual([expect.stringContaining('<input>:1:0: token recognition error')]);
+	});
+
+	it('handles qualified declarations, modifiers, and parameter modes', () => {
+		const source = `
+CREATE OR REPLACE EDITIONABLE PACKAGE app.types_api AS
+	PROCEDURE write_value(
+		p_result OUT NOCOPY app.value_type,
+		p_text IN VARCHAR2(100) := upper('text'),
+		p_count NUMBER
+	);
+	FUNCTION read_values RETURN app.value_table PIPELINED;
+	FUNCTION measure RETURN NUMBER(10, 2) DETERMINISTIC;
+END app.types_api;
+/`;
+		const doc = new PLSqlDocScanner(source).parseFile();
+		const [pkg] = doc.packages;
+		const [writeValue, readValues, measure] = pkg.routines;
+
+		expect(pkg.name).toBe('app.types_api');
+		expect(writeValue.parameters).toStrictEqual([
+			expect.objectContaining({defaultValue: null, mode: 'OUT', name: 'p_result', type: 'app.value_type'}),
+			expect.objectContaining({defaultValue: "upper('text')", mode: 'IN', name: 'p_text', type: 'VARCHAR2(100)'}),
+			expect.objectContaining({defaultValue: null, mode: 'IN', name: 'p_count', type: 'NUMBER'}),
+		]);
+		expect(readValues).toStrictEqual(expect.objectContaining({returnType: 'app.value_table'}));
+		expect(measure).toStrictEqual(expect.objectContaining({returnType: 'NUMBER(10,2)'}));
+	});
+
+	it('does not treat ordinary block comments as documentation', () => {
+		const source = `
+CREATE PACKAGE comments_api AS
+	/* Implementation note, not API documentation. */
+	PROCEDURE run;
+END comments_api;
+/`;
+		const doc = new PLSqlDocScanner(source).parsePackage();
+
+		expect(doc.routines[0].doc).toBeNull();
+	});
+
+	it('reports unreadable declarations and returns an unknown package fallback', () => {
+		const doc = new PLSqlDocScanner('CREATE PACKAGE ; CREATE FUNCTION ;', 'broken.sql').parseFile();
+		const fallback = new PLSqlDocScanner('', 'empty.sql').parsePackage();
+
+		expect(doc.packages).toHaveLength(0);
+		expect(doc.routines).toHaveLength(0);
+		expect(doc.warnings).toStrictEqual(['broken.sql:1:7: Unable to read package name.', 'broken.sql:1:24: Unable to read function name.']);
+		expect(fallback).toStrictEqual({
+			doc: null,
+			location: {column: 0, filePath: 'empty.sql', line: 0},
+			name: 'UNKNOWN',
+			routines: [],
+		});
+	});
 });

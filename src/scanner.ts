@@ -2,6 +2,7 @@ import {CharStream, CommonTokenStream, Token} from 'antlr4ng';
 import {type DocComment, type PackageDoc, type ParameterDoc, type ParamMode, type RoutineDoc, type SourceFileDoc, type SourceLocation} from './ast.js';
 import {findParamDoc, findReturnDoc, parseDocComment} from './doc-parser.js';
 import {PlSqlLexer} from './generated/PlSqlLexer.js';
+import {ScannerLexerErrorListener} from './scannerLexerErrorListener.js';
 
 type RoutineKind = 'PROCEDURE' | 'FUNCTION';
 
@@ -11,12 +12,18 @@ export class PLSqlDocScanner {
 	private readonly warnings: string[] = [];
 
 	public constructor(sourceInput: string, filePath: string | null = null) {
+		this.filePath = filePath;
 		const stream: CharStream = CharStream.fromString(sourceInput);
 		const lexer: PlSqlLexer = new PlSqlLexer(stream);
+		lexer.removeErrorListeners();
+		lexer.addErrorListener(
+			new ScannerLexerErrorListener((line: number, column: number, message: string): void => {
+				this.warnings.push(`${this.filePath ?? '<input>'}:${line}:${column}: ${message}`);
+			}),
+		);
 		const tokenStream = new CommonTokenStream(lexer);
 		tokenStream.fill();
 		this.tokens = tokenStream.getTokens();
-		this.filePath = filePath;
 	}
 
 	public parseFile(): SourceFileDoc {
@@ -264,24 +271,26 @@ export class PLSqlDocScanner {
 	}
 
 	private readQualifiedName(startIndex: number): {name: string; nextIndex: number} | null {
-		const parts: string[] = [];
-		let cursor: number = startIndex;
-
-		while (cursor >= 0 && cursor < this.tokens.length) {
-			const text: string = this.text(cursor);
-			if (!this.isIdentifier(cursor) && text !== '.') {
-				break;
-			}
-
-			parts.push(text);
-			cursor = this.nextVisibleIndex(cursor);
-		}
-
-		if (parts.length === 0) {
+		if (!this.isIdentifier(startIndex)) {
 			return null;
 		}
 
-		return {name: parts.join(''), nextIndex: cursor};
+		const parts: string[] = [this.text(startIndex)];
+		let cursor: number = startIndex;
+		let dotIndex: number = this.nextVisibleIndex(cursor);
+
+		while (this.text(dotIndex) === '.') {
+			const identifierIndex: number = this.nextVisibleIndex(dotIndex);
+			if (!this.isIdentifier(identifierIndex)) {
+				break;
+			}
+
+			parts.push('.', this.text(identifierIndex));
+			cursor = identifierIndex;
+			dotIndex = this.nextVisibleIndex(cursor);
+		}
+
+		return {name: parts.join(''), nextIndex: this.nextVisibleIndex(cursor)};
 	}
 
 	private consumeTypeSpecifier(startIndex: number, endIndex: number): string {
@@ -348,12 +357,12 @@ export class PLSqlDocScanner {
 
 		while (cursor >= 0) {
 			const token: Token = this.tokens[cursor];
-			if (token.type === PlSqlLexer.SPACE) {
+			if (token.type === PlSqlLexer.SPACES) {
 				cursor--;
 				continue;
 			}
 
-			if (token.type !== PlSqlLexer.COMMENT) {
+			if (!PLSqlDocScanner.isCommentToken(token)) {
 				break;
 			}
 
@@ -389,7 +398,7 @@ export class PLSqlDocScanner {
 		const line: number = this.tokens[index].line;
 		let cursor: number = index + 1;
 
-		while (cursor < this.tokens.length && this.tokens[cursor].type === PlSqlLexer.SPACE) {
+		while (cursor < this.tokens.length && this.tokens[cursor].type === PlSqlLexer.SPACES) {
 			cursor++;
 		}
 		if (cursor >= this.tokens.length) {
@@ -398,7 +407,7 @@ export class PLSqlDocScanner {
 
 		const token: Token = this.tokens[cursor];
 		const rawText: string = token.text ?? '';
-		if (token.type !== PlSqlLexer.COMMENT || token.line !== line || !rawText.startsWith('--')) {
+		if (!PLSqlDocScanner.isCommentToken(token) || token.line !== line || !rawText.startsWith('--')) {
 			return null;
 		}
 
@@ -441,8 +450,12 @@ export class PLSqlDocScanner {
 	}
 
 	private isIdentifier(index: number): boolean {
-		const type: number | undefined = this.tokens[index]?.type;
-		return type === PlSqlLexer.ID || type === PlSqlLexer.QUOTED_ID;
+		if (index < 0 || index >= this.tokens.length) {
+			return false;
+		}
+
+		const token: Token = this.tokens[index];
+		return token.type === PlSqlLexer.DELIMITED_ID || /^\p{Letter}[\p{Letter}0-9_$#]*$/u.test(token.text ?? '');
 	}
 
 	private isTrivia(index: number): boolean {
@@ -454,7 +467,11 @@ export class PLSqlDocScanner {
 	}
 
 	private static isTriviaToken(token: Token): boolean {
-		return token.type === PlSqlLexer.SPACE || token.type === PlSqlLexer.COMMENT || token.channel === Token.HIDDEN_CHANNEL;
+		return token.channel === Token.HIDDEN_CHANNEL;
+	}
+
+	private static isCommentToken(token: Token): boolean {
+		return token.type === PlSqlLexer.SINGLE_LINE_COMMENT || token.type === PlSqlLexer.MULTI_LINE_COMMENT;
 	}
 
 	private isKeyword(index: number, keyword: string): boolean {

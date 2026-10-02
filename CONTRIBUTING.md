@@ -28,7 +28,7 @@ pnpm install
 pnpm run ci
 ```
 
-Run `pnpm antlr` before `pnpm run ci` when changing `PlSqlLexer.g4`. Do not edit files under `src/generated/` directly.
+Use `pnpm grammar:download` to update `PlSqlLexer.g4` and `src/plSqlLexerBase.ts` from upstream `master`. The updater records the resolved commit and applies checked local grammar adaptations. Run `pnpm grammar:generate` before `pnpm run ci`; do not edit files under `src/generated/` directly.
 
 Generated output directories such as `dist/`, `docs/`, and `coverage/` should be regenerated from source changes rather than edited manually. Use the CLI `--clean` option when you need to remove stale generated documentation before rendering.
 
