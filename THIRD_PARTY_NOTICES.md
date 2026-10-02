@@ -11,4 +11,4 @@ The upstream files are licensed under the Apache License 2.0. The grammar retain
 Local grammar adaptations:
 
 - Added the Antlr4ng import header required by generated TypeScript output.
-- Generalized alternative-quoted string delimiters to match Oracle's documented syntax.
+- Generalized alternative-quoted string delimiters to match Oracle's documented syntax; reported upstream as [antlr/grammars-v4#5029](https://github.com/antlr/grammars-v4/issues/5029).
