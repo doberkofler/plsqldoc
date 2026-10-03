@@ -2,11 +2,16 @@ import * as fs from 'node:fs/promises';
 import * as os from 'node:os';
 import path from 'node:path';
 
-import {afterEach, describe, expect, it, vi} from 'vitest';
+import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 
 import {runCli} from './index.js';
 
 describe('runCli', () => {
+	beforeEach(() => {
+		vi.spyOn(console, 'log').mockReturnValue();
+		vi.spyOn(console, 'warn').mockReturnValue();
+	});
+
 	afterEach(() => {
 		vi.restoreAllMocks();
 	});
@@ -15,7 +20,7 @@ describe('runCli', () => {
 		const sourceDir: string = await fs.mkdtemp(path.join(os.tmpdir(), 'pldoc-cli-source-'));
 		const outputDir: string = await fs.mkdtemp(path.join(os.tmpdir(), 'pldoc-cli-output-'));
 		await fs.writeFile(path.join(sourceDir, 'sample.pks'), 'CREATE OR REPLACE PACKAGE sample_api AS PROCEDURE run; END sample_api; /', 'utf8');
-		const log = vi.spyOn(console, 'log').mockReturnValue();
+		const log = vi.mocked(console.log);
 
 		const exitCode: number = await runCli(['node', 'pldoc', '--', sourceDir, '--out', outputDir, '--verbose']);
 
@@ -32,8 +37,8 @@ describe('runCli', () => {
 		const sourceDir: string = await fs.mkdtemp(path.join(os.tmpdir(), 'pldoc-cli-empty-'));
 		const outputDir: string = path.join(sourceDir, 'docs');
 		await fs.writeFile(path.join(sourceDir, 'empty.sql'), 'SELECT 1 FROM dual;', 'utf8');
-		const log = vi.spyOn(console, 'log').mockReturnValue();
-		const warn = vi.spyOn(console, 'warn').mockReturnValue();
+		const log = vi.mocked(console.log);
+		const warn = vi.mocked(console.warn);
 
 		const exitCode: number = await runCli(['node', 'pldoc', sourceDir, '--out', outputDir]);
 
@@ -50,7 +55,7 @@ describe('runCli', () => {
 		const sourceDir: string = await fs.mkdtemp(path.join(os.tmpdir(), 'pldoc-cli-warning-'));
 		const outputDir: string = path.join(sourceDir, 'docs');
 		await fs.writeFile(path.join(sourceDir, 'warning.pks'), '⌘ CREATE OR REPLACE PACKAGE warning_api AS PROCEDURE run; END warning_api; /', 'utf8');
-		const warn = vi.spyOn(console, 'warn').mockReturnValue();
+		const warn = vi.mocked(console.warn);
 
 		const exitCode: number = await runCli(['node', 'pldoc', sourceDir, '--out', outputDir, '--fail-on-warning']);
 
@@ -63,7 +68,7 @@ describe('runCli', () => {
 		const sourceDir: string = await fs.mkdtemp(path.join(os.tmpdir(), 'pldoc-cli-undocumented-'));
 		const outputDir: string = path.join(sourceDir, 'docs');
 		await fs.writeFile(path.join(sourceDir, 'sample.pkg'), 'CREATE PACKAGE sample_api IS FUNCTION value(p_id NUMBER) RETURN NUMBER; END sample_api;', 'utf8');
-		const warn = vi.spyOn(console, 'warn').mockReturnValue();
+		const warn = vi.mocked(console.warn);
 
 		const defaultExitCode: number = await runCli(['node', 'pldoc', sourceDir, '--out', outputDir]);
 		const strictExitCode: number = await runCli(['node', 'pldoc', sourceDir, '--out', outputDir, '--fail-on-undocumented']);
@@ -87,6 +92,55 @@ END sample_api;`,
 		expect(warn).toHaveBeenCalledWith(expect.stringContaining('Undocumented package sample_api.'));
 	});
 
+	it('renders exempt constants under strict documentation validation', async () => {
+		const sourceDir: string = await fs.mkdtemp(path.join(os.tmpdir(), 'pldoc-cli-exempt-constant-source-'));
+		const outputDir: string = path.join(sourceDir, 'docs');
+		await fs.writeFile(
+			path.join(sourceDir, 'preferences.pkg'),
+			`CREATE PACKAGE preferences IS
+/**
+ * Preferences.
+ * @PLSQLDOC-IGNORE-UNDOCUMENTED CONSTANT
+ */
+
+k_default CONSTANT VARCHAR2(10) := 'default';
+END preferences;`,
+			'utf8',
+		);
+
+		const exitCode: number = await runCli(['node', 'pldoc', sourceDir, '--out', outputDir, '--fail-on-undocumented']);
+
+		expect(exitCode).toBe(0);
+		await expect(fs.readFile(path.join(outputDir, 'package-preferences.html'), 'utf8')).resolves.toContain('k_default');
+	});
+
+	it('fails strict documentation validation for invalid exemption values', async () => {
+		const sourceDir: string = await fs.mkdtemp(path.join(os.tmpdir(), 'pldoc-cli-invalid-exemption-source-'));
+		const outputDir: string = path.join(sourceDir, 'docs');
+		await fs.writeFile(
+			path.join(sourceDir, 'preferences.pkg'),
+			`CREATE PACKAGE preferences IS
+/**
+ * Preferences.
+ * @plsqldoc-ignore-undocumented
+ * @plsqldoc-ignore-undocumented variable
+ */
+
+/** Default. */
+k_default CONSTANT VARCHAR2(10) := 'default';
+END preferences;`,
+			'utf8',
+		);
+		const warn = vi.mocked(console.warn);
+
+		const exitCode: number = await runCli(['node', 'pldoc', sourceDir, '--out', outputDir, '--fail-on-undocumented']);
+
+		expect(exitCode).toBe(1);
+		expect(warn).toHaveBeenCalledWith(expect.stringContaining('Invalid @plsqldoc-ignore-undocumented value "<empty>"'));
+		expect(warn).toHaveBeenCalledWith(expect.stringContaining('Invalid @plsqldoc-ignore-undocumented value "variable"'));
+		await expect(fs.access(outputDir)).rejects.toThrow('ENOENT');
+	});
+
 	it('discovers default extensions while excluding SQL files and bodies by syntax', async () => {
 		const sourceDir: string = await fs.mkdtemp(path.join(os.tmpdir(), 'pldoc-cli-extensions-'));
 		const outputDir: string = path.join(sourceDir, 'docs');
@@ -107,7 +161,7 @@ END sample_api;`,
 				await fs.writeFile(path.join(sourceDir, name), source, 'utf8');
 			}),
 		);
-		const log = vi.spyOn(console, 'log').mockReturnValue();
+		const log = vi.mocked(console.log);
 
 		const exitCode: number = await runCli(['node', 'pldoc', sourceDir, '--out', outputDir, '--verbose']);
 
@@ -125,7 +179,7 @@ END sample_api;`,
 		const patternOutputDir: string = path.join(sourceDir, 'pattern-docs');
 		await fs.writeFile(path.join(sourceDir, 'included.custom'), 'CREATE PACKAGE custom_api IS END custom_api;', 'utf8');
 		await fs.writeFile(path.join(sourceDir, 'ignored.sql'), 'CREATE PACKAGE sql_api IS END sql_api;', 'utf8');
-		const log = vi.spyOn(console, 'log').mockReturnValue();
+		const log = vi.mocked(console.log);
 
 		const extensionExitCode: number = await runCli(['node', 'pldoc', sourceDir, '--out', extensionOutputDir, '--extensions', ' .CUSTOM,custom ', '--verbose']);
 		const patternExitCode: number = await runCli(['node', 'pldoc', sourceDir, '--out', patternOutputDir, '--extensions', '.sql', '--pattern', '**/*.custom']);

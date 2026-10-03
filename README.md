@@ -150,6 +150,27 @@ Documentation immediately before `CREATE` remains supported for compatibility, b
 
 Descriptions and tag values support Markdown. Raw HTML is disabled and rendered output is sanitized. Resource links accept only absolute `http` and `https` URLs. Use `\@` when a multiline tag value needs a physical line beginning with a literal `@`.
 
+### Validation Directives
+
+Package documentation can exempt constants from `--fail-on-undocumented` validation:
+
+```sql
+create or replace package preferences is
+	/**
+	 * Public preferences.
+	 *
+	 * @plsqldoc-ignore-undocumented constant
+	 */
+
+	k_default constant varchar2(30) := 'default';
+end preferences;
+/
+```
+
+`constant` is the only supported value. The tag name and value are case-insensitive, and the exemption applies to every constant in that package. Exempt constants remain in generated HTML, and documented constants retain their descriptions. Other declarations, parameters, return values, and the package description remain required. The directive is not rendered.
+
+The directive is recognized only in package documentation; occurrences elsewhere are ignored. Empty or unsupported values produce a validation warning and cause `--fail-on-undocumented` to fail. Repeating an identical directive has no additional effect.
+
 ```sql
 create or replace package mail_api is
 	/**

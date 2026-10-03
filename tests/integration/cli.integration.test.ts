@@ -258,6 +258,27 @@ as object (/** Attribute documentation. */ attribute_name number);`,
 		await expect(fs.readFile(path.join(outputDirectory, 'index.html'), 'utf8')).resolves.toContain('documented_type');
 	});
 
+	it('renders package constants exempted from strict documentation validation', async () => {
+		const sourceDirectory: string = await makeTemporaryDirectory('plsqldoc-integration-exempt-constant-source-');
+		const outputDirectory: string = await makeTemporaryDirectory('plsqldoc-integration-exempt-constant-output-');
+		await writeSources(sourceDirectory, {
+			'preferences.pks': `create package preferences is
+/**
+ * Preferences.
+ * @plsqldoc-ignore-undocumented constant
+ */
+
+k_default constant varchar2(10) := 'default';
+end preferences;`,
+		});
+
+		const result: ProcessResult = runBuiltCli([sourceDirectory, '--out', outputDirectory, '--fail-on-undocumented']);
+
+		expect(result.exitCode).toBe(0);
+		expect(result.stderr).not.toContain('Undocumented constant');
+		await expect(fs.readFile(path.join(outputDirectory, 'package-preferences.html'), 'utf8')).resolves.toContain('k_default');
+	});
+
 	it('fails on parser warnings without writing output', async () => {
 		const sourceDirectory: string = await makeTemporaryDirectory('plsqldoc-integration-warning-source-');
 		const outputDirectory: string = await makeTemporaryDirectory('plsqldoc-integration-warning-output-');

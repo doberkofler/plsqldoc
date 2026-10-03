@@ -3,12 +3,21 @@ import {
 	type DocTag,
 	isRoutineDoc,
 	type ObjectTypeDoc,
+	type PackageDoc,
 	type PackageMemberDoc,
 	type ParameterDoc,
 	type ProjectDoc,
 	type RoutineDoc,
 	type SourceLocation,
 } from './ast.js';
+
+const IGNORE_UNDOCUMENTED_TAG = 'plsqldoc-ignore-undocumented';
+const SUPPORTED_IGNORE_UNDOCUMENTED_VALUE = 'constant';
+
+type PackageValidationPolicy = {
+	readonly ignoreUndocumentedConstants: boolean;
+	readonly warnings: readonly string[];
+};
 
 const formatWarning = (location: SourceLocation, message: string): string =>
 	`${location.filePath ?? '<input>'}:${location.line}:${location.column}: ${message}`;
@@ -17,6 +26,25 @@ const hasDescription = (doc: DocComment | null): boolean => (doc?.description.tr
 
 const tagsNamed = (doc: DocComment | null, name: string): readonly DocTag[] =>
 	doc?.tags.filter((tag: DocTag): boolean => tag.name.toLowerCase() === name) ?? [];
+
+const packageValidationPolicy = (pkg: PackageDoc): PackageValidationPolicy => {
+	const values = new Set(tagsNamed(pkg.doc, IGNORE_UNDOCUMENTED_TAG).map((tag: DocTag): string => tag.value.trim().toLowerCase()));
+	const warnings: string[] = [];
+	for (const value of values) {
+		if (value !== SUPPORTED_IGNORE_UNDOCUMENTED_VALUE) {
+			warnings.push(
+				formatWarning(
+					pkg.location,
+					`Invalid @${IGNORE_UNDOCUMENTED_TAG} value "${value || '<empty>'}" in package ${pkg.name}. Supported value: ${SUPPORTED_IGNORE_UNDOCUMENTED_VALUE}.`,
+				),
+			);
+		}
+	}
+	return {
+		ignoreUndocumentedConstants: values.has(SUPPORTED_IGNORE_UNDOCUMENTED_VALUE),
+		warnings,
+	};
+};
 
 const parameterNameFromTag = (tag: DocTag): string => tag.value.trim().split(/\s+/u, 1)[0] ?? '';
 
@@ -104,10 +132,15 @@ const validateObjectType = (type: ObjectTypeDoc): string[] => {
 export const findUndocumentedDeclarations = (project: ProjectDoc): readonly string[] => {
 	const warnings: string[] = [];
 	for (const pkg of project.packages) {
+		const policy: PackageValidationPolicy = packageValidationPolicy(pkg);
+		warnings.push(...policy.warnings);
 		if (!hasDescription(pkg.doc)) {
 			warnings.push(formatWarning(pkg.location, `Undocumented package ${pkg.name}.`));
 		}
 		for (const member of pkg.members) {
+			if (policy.ignoreUndocumentedConstants && member.kind === 'CONSTANT') {
+				continue;
+			}
 			warnings.push(...validatePackageMember(member));
 		}
 	}

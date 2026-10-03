@@ -114,4 +114,71 @@ END invalid_tags;`;
 			]),
 		);
 	});
+
+	it('reports an undocumented constant without a package exemption', () => {
+		const source = `CREATE PACKAGE preferences IS
+	/** Preferences. */
+
+	k_default CONSTANT VARCHAR2(10) := 'default';
+END preferences;`;
+		const sourceDoc = new PLSqlDocScanner(source).parseFile();
+
+		expect(findUndocumentedDeclarations({...sourceDoc, warnings: []})).toStrictEqual([expect.stringContaining('Undocumented constant k_default.')]);
+	});
+
+	it('case-insensitively exempts only constants through package documentation', () => {
+		const source = `CREATE PACKAGE preferences IS
+	/**
+	 * Preferences.
+	 * @PLSQLDOC-IGNORE-UNDOCUMENTED CONSTANT
+	 * @plsqldoc-ignore-undocumented constant
+	 */
+
+	k_default CONSTANT VARCHAR2(10) := 'default';
+	g_value VARCHAR2(10);
+	/** @plsqldoc-ignore-undocumented constant */
+	k_member_directive CONSTANT NUMBER := 1;
+END preferences;`;
+		const sourceDoc = new PLSqlDocScanner(source).parseFile();
+		const warnings = findUndocumentedDeclarations({...sourceDoc, warnings: []});
+
+		expect(warnings).toStrictEqual([expect.stringContaining('Undocumented variable g_value.')]);
+		expect(sourceDoc.packages[0]?.members.map((member) => member.name)).toStrictEqual(['k_default', 'g_value', 'k_member_directive']);
+	});
+
+	it('reports each distinct invalid package exemption value once', () => {
+		const source = `CREATE PACKAGE preferences IS
+	/**
+	 * Preferences.
+	 * @plsqldoc-ignore-undocumented constant
+	 * @plsqldoc-ignore-undocumented
+	 * @plsqldoc-ignore-undocumented variable
+	 * @plsqldoc-ignore-undocumented VARIABLE
+	 */
+
+	k_default CONSTANT VARCHAR2(10) := 'default';
+END preferences;`;
+		const sourceDoc = new PLSqlDocScanner(source).parseFile();
+		const warnings = findUndocumentedDeclarations({...sourceDoc, warnings: []});
+
+		expect(warnings).toHaveLength(2);
+		expect(warnings).toStrictEqual(
+			expect.arrayContaining([
+				expect.stringContaining('Invalid @plsqldoc-ignore-undocumented value "<empty>" in package preferences.'),
+				expect.stringContaining('Invalid @plsqldoc-ignore-undocumented value "variable" in package preferences.'),
+			]),
+		);
+	});
+
+	it('ignores the exemption directive outside package documentation', () => {
+		const source = `CREATE PACKAGE preferences IS
+	/** Preferences. */
+
+	/** @plsqldoc-ignore-undocumented constant */
+	k_default CONSTANT VARCHAR2(10) := 'default';
+END preferences;`;
+		const sourceDoc = new PLSqlDocScanner(source).parseFile();
+
+		expect(findUndocumentedDeclarations({...sourceDoc, warnings: []})).toStrictEqual([expect.stringContaining('Undocumented constant k_default.')]);
+	});
 });
