@@ -58,7 +58,7 @@
 		"@types/cli-progress": "3.11.6",
 		"@types/debug": "4.1.13",
 		"@types/markdown-it": "14.2.0",
-		"@types/node": "26.6.3",
+		"@types/node": "26.6.4",
 		"@types/sanitize-html": "2.16.2",
 		"@vitest/coverage-v8": "5.0.3",
 		"antlr-ng": "1.0.10",
@@ -71,7 +71,7 @@
 		"oxlint-tsgolint": "7.0.2003",
 		"release-it": "21.1.0",
 		"typescript": "7.0.2",
-		"vite": "8.3.1",
+		"vite": "8.3.2",
 		"vitest": "5.0.3"
 	},
 	"create-template-project": {
