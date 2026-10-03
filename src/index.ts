@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import * as fs from 'node:fs/promises';
 import path from 'node:path';
-import {pathToFileURL} from 'node:url';
+import {fileURLToPath} from 'node:url';
 import {Command} from 'commander';
 import {glob} from 'glob';
 import {type PackageDoc, type ProjectDoc, type RoutineDoc, type SourceFileDoc, type StandaloneTypeDoc} from './ast.js';
@@ -205,8 +205,18 @@ export const runCli = async (argv: readonly string[]): Promise<number> => {
 	return exitCode;
 };
 
-const entryPath: string | undefined = process.argv.at(1);
-if (entryPath !== undefined && import.meta.url === pathToFileURL(path.resolve(entryPath)).href) {
+const isDirectExecution = async (moduleUrl: string, argv: readonly string[]): Promise<boolean> => {
+	const entryPath: string | undefined = argv.at(1);
+	if (entryPath === undefined) {
+		return false;
+	}
+
+	const modulePath: string = await fs.realpath(fileURLToPath(moduleUrl));
+	const resolvedEntryPath: string = await fs.realpath(entryPath);
+	return modulePath === resolvedEntryPath;
+};
+
+if (await isDirectExecution(import.meta.url, process.argv)) {
 	try {
 		process.exitCode = await runCli(process.argv);
 	} catch (error: unknown) {

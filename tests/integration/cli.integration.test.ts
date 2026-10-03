@@ -38,6 +38,14 @@ const runBuiltCli = (arguments_: readonly string[]): ProcessResult => {
 	return {exitCode: result.status ?? 1, stderr: result.stderr, stdout: result.stdout};
 };
 
+const runExecutable = (executablePath: string, arguments_: readonly string[]): ProcessResult => {
+	const result = spawnSync(executablePath, arguments_, {cwd: path.resolve('.'), encoding: 'utf8'});
+	if (result.error !== undefined) {
+		throw result.error;
+	}
+	return {exitCode: result.status ?? 1, stderr: result.stderr, stdout: result.stdout};
+};
+
 describe('built CLI', () => {
 	afterEach(async () => {
 		await Promise.all(
@@ -98,6 +106,26 @@ describe('built CLI', () => {
 		expect(indexHtml).toContain('employee_array');
 		expect(indexHtml).toContain('rebuild_indexes');
 		expect(indexHtml).not.toContain('hidden_helper');
+	});
+
+	it('renders the fixture project through an npm bin symlink', async () => {
+		const installationDirectory: string = await makeTemporaryDirectory('plsqldoc-integration-installation-');
+		const outputDirectory: string = await makeTemporaryDirectory('plsqldoc-integration-symlink-output-');
+		const binDirectory: string = path.join(installationDirectory, 'node_modules', '.bin');
+		const symlinkPath: string = path.join(binDirectory, 'plsqldoc');
+		await fs.mkdir(binDirectory, {recursive: true});
+		await fs.chmod(cliPath, 0o755);
+		await fs.symlink(cliPath, symlinkPath);
+
+		const result: ProcessResult = runExecutable(symlinkPath, [fixtureDirectory, '--out', outputDirectory, '--verbose']);
+
+		expect(result).toStrictEqual(expect.objectContaining({exitCode: 0, stderr: ''}));
+		expect(result.stdout).toContain(`Directory [${fixtureDirectory}]`);
+		expect(result.stdout).toContain('Documentation successfully generated');
+		expect(result.stdout).toContain('Summary:');
+		const outputFiles: string[] = await fs.readdir(outputDirectory);
+		expect(outputFiles).toContain('index.html');
+		expect(outputFiles.some((fileName: string): boolean => fileName.startsWith('package-') && fileName.endsWith('.html'))).toBe(true);
 	});
 
 	it('renders an object-only project with sanitized Markdown, examples, resources, and overload anchors', async () => {

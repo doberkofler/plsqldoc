@@ -46,6 +46,9 @@ jobs:
       - name: Unit test
         run: pnpm run test
 
+      - name: Black-box integration test
+        run: pnpm run test:integration
+
       - name: Coveralls GitHub Action
         if: matrix.node-version == '24.x'
         uses: coverallsapp/github-action@v2
