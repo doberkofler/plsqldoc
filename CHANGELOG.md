@@ -1,3 +1,9 @@
+# [1.5.0](https://github.com/doberkofler/plsqldoc/compare/v1.4.0...v1.5.0) (2026-10-03)
+
+### Features
+
+* support undocumented constant exemptions ([aef9c00](https://github.com/doberkofler/plsqldoc/commit/aef9c0000f307612efd80cf19de16287694fa97f))
+
 # [1.4.0](https://github.com/doberkofler/plsqldoc/compare/v1.3.0...v1.4.0) (2026-10-02)
 
 ### Bug Fixes
