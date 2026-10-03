@@ -1,3 +1,9 @@
+# [1.6.0](https://github.com/doberkofler/plsqldoc/compare/v1.5.0...v1.6.0) (2026-10-03)
+
+### Bug Fixes
+
+* execute CLI through npm bin symlinks ([a196017](https://github.com/doberkofler/plsqldoc/commit/a19601714d5fdd227d9bd50a8eca3ee3b0e44bb2))
+
 # [1.5.0](https://github.com/doberkofler/plsqldoc/compare/v1.4.0...v1.5.0) (2026-10-03)
 
 ### Features
